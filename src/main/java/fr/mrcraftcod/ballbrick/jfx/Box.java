@@ -12,23 +12,28 @@ import javafx.scene.text.TextAlignment;
  */
 public class Box extends Rectangle implements Sprite
 {
-	private final Rectangle left;
-	private final Rectangle right;
-	private final Rectangle top;
-	private final Rectangle bottom;
+	private Rectangle left;
+	private Rectangle right;
+	private Rectangle top;
+	private Rectangle bottom;
 	private int value;
 
-	public Box(double x, double y, double w, double h, int v)
+	public Box(int value, double x, double y, double width, double height)
 	{
-		super(x, MainApplication.HEIGHT - y, w, h);
-		this.value = v;
+		super(x, y, width, height);
+		this.value = value;
+		updateHitbox();
+	}
+	
+	public void updateHitbox()
+	{
 		double hitPadding = 5;
 		left = new Rectangle(getX(), getY() + hitPadding, 1, getHeight() - 2 * hitPadding);
 		right = new Rectangle(getX() + getWidth(), getY() + hitPadding, 1, getHeight() - 2 * hitPadding);
 		top = new Rectangle(getX() + hitPadding, getY(), getWidth() - 2 * hitPadding, 1);
 		bottom = new Rectangle(getX() + hitPadding, getY() + getHeight(), getWidth() - 2 * hitPadding, 1);
 	}
-
+	
 	@Override
 	public void draw(GraphicsContext gc)
 	{
@@ -49,7 +54,6 @@ public class Box extends Rectangle implements Sprite
 
 	public boolean bounceBall(Ball ball)
 	{
-
 		boolean hit = false;
 		if(ball.intersects(top.getLayoutBounds()) || ball.intersects(bottom.getLayoutBounds()))
 		{
@@ -63,6 +67,11 @@ public class Box extends Rectangle implements Sprite
 		}
 		if(hit)
 			value--;
-		return value <= 0;
+		return hit;
+	}
+	
+	public int getValue()
+	{
+		return value;
 	}
 }

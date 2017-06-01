@@ -11,7 +11,7 @@ import javafx.scene.shape.Circle;
  */
 public class Ball extends Circle implements Sprite
 {
-	public static final int RADIUS = 25;
+	public static final int RADIUS = 10;
 	private double vx;
 	private double vy;
 	private boolean invertY;
@@ -19,7 +19,7 @@ public class Ball extends Circle implements Sprite
 
 	public Ball(double x, double y)
 	{
-		this(x, MainApplication.HEIGHT - y, RADIUS);
+		this(x, y, RADIUS);
 	}
 
 	public Ball(double x, double y, double radius)
