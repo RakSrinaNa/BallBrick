@@ -16,12 +16,14 @@ public class Box extends Rectangle implements Sprite
 	private Rectangle right;
 	private Rectangle top;
 	private Rectangle bottom;
+	private static double maxValue = 0;
 	private int value;
 
 	public Box(int value, double x, double y, double width, double height)
 	{
 		super(x, y, width, height);
 		this.value = value;
+		maxValue = Math.max(value, maxValue);
 		updateHitbox();
 	}
 	
@@ -37,7 +39,7 @@ public class Box extends Rectangle implements Sprite
 	@Override
 	public void draw(GraphicsContext gc)
 	{
-		gc.setFill(Color.RED);
+		gc.setFill(Color.GREEN.interpolate(Color.RED, (value - 1) / (maxValue - 1)));
 		gc.fillRect(getX(), getY(), getWidth(), getHeight());
 		if(MainApplication.DEBUG)
 		{

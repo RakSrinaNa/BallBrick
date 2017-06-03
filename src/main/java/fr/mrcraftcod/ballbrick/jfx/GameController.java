@@ -1,7 +1,6 @@
 package fr.mrcraftcod.ballbrick.jfx;
 
 import javafx.collections.FXCollections;
-import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
@@ -9,7 +8,6 @@ import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.paint.Color;
 import javafx.scene.text.TextAlignment;
-import java.util.ArrayList;
 import java.util.Iterator;
 
 /**
@@ -20,10 +18,8 @@ import java.util.Iterator;
  */
 public class GameController implements EventHandler<ActionEvent>, Sprite
 {
-	private final ArrayList<Sprite> sprites = new ArrayList<>();
-	private final ObservableList<Ball> balls = FXCollections.observableArrayList();
+	private BallDispenser balls;
 	private final ObservableList<Row> rows = FXCollections.observableArrayList();
-	private final Ball ball;
 	private static final int ROWS = 7;
 	private static final int COLS = 6;
 	private static final int PADDING = 2;
@@ -34,44 +30,21 @@ public class GameController implements EventHandler<ActionEvent>, Sprite
 	
 	public GameController()
 	{
-		rows.addListener((ListChangeListener<Row>) c -> {
-			while(c.next())
-			{
-				sprites.addAll(c.getAddedSubList());
-				sprites.removeAll(c.getRemoved());
-			}
-		});
-		balls.addListener((ListChangeListener<Ball>) c -> {
-			while(c.next())
-			{
-				sprites.addAll(c.getAddedSubList());
-				sprites.removeAll(c.getRemoved());
-			}
-		});
-		
 		cellWidth = MainApplication.WIDTH / COLS;
 		cellHeight = (MainApplication.HEIGHT - BOTTOM_SPACE) / ROWS;
 		
-		balls.add(ball = new Ball(MainApplication.WIDTH / 2, MainApplication.HEIGHT - 1.5001 * Ball.RADIUS));
+		balls = new BallDispenser(new Ball(MainApplication.WIDTH / 2, MainApplication.HEIGHT - 1.5001 * Ball.RADIUS));
+		
 		moveRows();
 	}
 	
 	@Override
 	public void handle(ActionEvent event)
 	{
-		ball.setCenterX(ball.getCenterX() + ball.getVelocityX());
-		ball.setCenterY(ball.getCenterY() + ball.getVelocityY());
-		if(ball.getCenterX() + ball.getRadius() >= MainApplication.WIDTH || ball.getCenterX() - ball.getRadius() <= 0)
-			ball.setInvertX();
-		if(ball.getCenterY() + ball.getRadius() >= MainApplication.HEIGHT || ball.getCenterY() - ball.getRadius() <= 0)
-			ball.setInvertY();
-		rows.forEach(row -> row.update(ball));
-		ball.update();
-		if(ball.getCenterY() >= MainApplication.HEIGHT - 1.5 * ball.getRadius())
+		if(!balls.update(rows))
 		{
-			ball.setCenterY(MainApplication.HEIGHT - 1.5001 * ball.getRadius());
-			MainApplication.gameTimeline.pause();
 			moveRows();
+			MainApplication.gameTimeline.pause();
 		}
 	}
 	
@@ -82,33 +55,54 @@ public class GameController implements EventHandler<ActionEvent>, Sprite
 		gc.setTextAlign(TextAlignment.CENTER);
 		gc.fillText("Score: " + hitCount, MainApplication.WIDTH / 2, 20, MainApplication.WIDTH);
 		rows.forEach(row -> row.draw(gc));
-		balls.forEach(ball -> ball.draw(gc));
+		balls.draw(gc);
 	}
 	
 	private void moveRows()
 	{
+		boolean gameOver = false;
 		rows.forEach(Row::moveDown);
 		Iterator<Row> rowIterator = rows.iterator();
 		while(rowIterator.hasNext())
-			if(rowIterator.next().getRow() >= ROWS)
+		{
+			Row row = rowIterator.next();
+			if(row.getRow() >= ROWS)
+			{
+				if(row.getBoxesCount() > 0)
+					gameOver = true;
 				rowIterator.remove();
+			}
+		}
+		if(gameOver)
+			gameOver();
 		rows.add(new Row(this, 1, COLS, PADDING, cellWidth, cellHeight));
+	}
+	
+	private void gameOver()
+	{
+		hitCount = 0;
+		rows.clear();
+		balls = new BallDispenser(new Ball(MainApplication.WIDTH / 2, MainApplication.HEIGHT - 1.5001 * Ball.RADIUS));
 	}
 	
 	public void onNewRound(MouseEvent evt)
 	{
-		double padding = Math.PI / 64;
-		double angle = Math.atan2(evt.getY() - ball.getCenterY(), evt.getX() - ball.getCenterX());
-		if(Math.PI + angle >= padding && angle <= - padding)
-		{
-			ball.setVelocityX(Math.cos(angle) * 5);
-			ball.setVelocityY(Math.sin(angle) * 5);
+		if(balls.start(evt))
 			MainApplication.gameTimeline.play();
-		}
 	}
 	
 	public void addScore(int size)
 	{
 		hitCount += size;
+	}
+	
+	public void addBall()
+	{
+		balls.addBall();
+	}
+	
+	public int getBallCount()
+	{
+		return balls.getCount();
 	}
 }

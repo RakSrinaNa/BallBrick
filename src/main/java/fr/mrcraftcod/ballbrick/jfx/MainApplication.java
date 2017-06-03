@@ -22,7 +22,8 @@ public class MainApplication extends ApplicationBase
 {
 	public static final double WIDTH = 500;
 	public static final double HEIGHT = 800;
-	public static final boolean DEBUG = true;
+	public static final boolean DEBUG = false;
+	public static final Color BACKGROUND = Color.GRAY;
 	public static Timeline timeline;
 	private static Canvas canvas;
 	private static GameController gameController;
@@ -60,7 +61,7 @@ public class MainApplication extends ApplicationBase
 		KeyFrame painter = new KeyFrame(Duration.seconds(1.0 / 60), event -> {
 			canvas.getGraphicsContext2D().closePath();
 			canvas.getGraphicsContext2D().clearRect(0, 0, canvas.getWidth(), canvas.getHeight());
-			canvas.getGraphicsContext2D().setFill(Color.GRAY);
+			canvas.getGraphicsContext2D().setFill(BACKGROUND);
 			canvas.getGraphicsContext2D().fillRect(0, 0, WIDTH, HEIGHT);
 			gameController.draw(canvas.getGraphicsContext2D());
 		});

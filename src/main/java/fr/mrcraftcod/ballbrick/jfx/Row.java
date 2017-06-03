@@ -16,6 +16,7 @@ import java.util.concurrent.ThreadLocalRandom;
 public class Row implements Sprite
 {
 	private final ArrayList<Box> boxes = new ArrayList<>();
+	private NewBall newBall;
 	private final double padding;
 	private final double cellWidth;
 	private final double cellHeight;
@@ -45,18 +46,31 @@ public class Row implements Sprite
 			Collections.shuffle(indices);
 			int index = indices.poll();
 			double x = (index + 1) * padding + index * cellWidth;
-			boxes.add(new Box(1 + ThreadLocalRandom.current().nextInt(9), x, y, cellWidth, cellHeight));
+			boxes.add(new Box(1 + ThreadLocalRandom.current().nextInt(2 * parent.getBallCount()), x, y, cellWidth, cellHeight));
 		}
+		Collections.shuffle(indices);
+		int index = indices.poll();
+		double x1 = (index + 1) * padding + index * cellWidth;
+		double x2 = (index + 2) * padding + (index + 1) * cellWidth;
+		double y2 = (row + 2) * padding + (row + 1) * cellHeight;
+		newBall = new NewBall((x2 + x1) / 2, (y + y2) / 2, 1.75 * Ball.RADIUS);
 	}
 	
 	@Override
 	public void draw(GraphicsContext gc)
 	{
 		boxes.forEach(box -> box.draw(gc));
+		if(!newBall.isTaken())
+			newBall.draw(gc);
 	}
 	
 	public void update(Ball ball)
 	{
+		if(!newBall.isTaken() && ball.intersects(newBall.getLayoutBounds()))
+		{
+			parent.addBall();
+			newBall.setTaken();
+		}
 		Iterator<Box> boxIterator = boxes.iterator();
 		while(boxIterator.hasNext())
 		{
@@ -78,10 +92,17 @@ public class Row implements Sprite
 			box.setY(y);
 			box.updateHitbox();
 		});
+		double y2 = (row + 2) * padding + (row + 1) * cellHeight;
+		newBall.setCenterY((y + y2) / 2);
 	}
 	
 	public int getRow()
 	{
 		return row;
+	}
+	
+	public int getBoxesCount()
+	{
+		return boxes.size();
 	}
 }
