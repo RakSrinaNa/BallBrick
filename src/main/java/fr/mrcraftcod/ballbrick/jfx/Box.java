@@ -10,37 +10,28 @@ import javafx.scene.text.TextAlignment;
  * @author Thomas Couchoud
  * @since 2017-05-31
  */
-public class Box extends Rectangle implements Sprite
+public class Box extends Obstacle
 {
+	private Rectangle hitbox;
 	private Rectangle left;
 	private Rectangle right;
 	private Rectangle top;
 	private Rectangle bottom;
-	private static double maxValue = 0;
-	private int value;
+	
 
 	public Box(int value, double x, double y, double width, double height)
 	{
-		super(x, y, width, height);
-		this.value = value;
+		super(value);
+		hitbox = new Rectangle(x, y, width, height);
 		maxValue = Math.max(value, maxValue);
 		updateHitbox();
-	}
-	
-	public void updateHitbox()
-	{
-		double hitPadding = 5;
-		left = new Rectangle(getX(), getY() + hitPadding, 1, getHeight() - 2 * hitPadding);
-		right = new Rectangle(getX() + getWidth(), getY() + hitPadding, 1, getHeight() - 2 * hitPadding);
-		top = new Rectangle(getX() + hitPadding, getY(), getWidth() - 2 * hitPadding, 1);
-		bottom = new Rectangle(getX() + hitPadding, getY() + getHeight(), getWidth() - 2 * hitPadding, 1);
 	}
 	
 	@Override
 	public void draw(GraphicsContext gc)
 	{
 		gc.setFill(Color.GREEN.interpolate(Color.RED, (value - 1) / (maxValue - 1)));
-		gc.fillRect(getX(), getY(), getWidth(), getHeight());
+		gc.fillRect(hitbox.getX(), hitbox.getY(), hitbox.getWidth(), hitbox.getHeight());
 		if(MainApplication.DEBUG)
 		{
 			gc.setFill(Color.BLUE);
@@ -51,29 +42,50 @@ public class Box extends Rectangle implements Sprite
 		}
 		gc.setFill(Color.BLACK);
 		gc.setTextAlign(TextAlignment.CENTER);
-		gc.fillText("" + value, getX() + getWidth() / 2, getY() + getHeight() / 2, getWidth() / 2);
+		gc.fillText("" + value, hitbox.getX() + hitbox.getWidth() / 2, hitbox.getY() + hitbox.getHeight() / 2, hitbox.getWidth() / 2);
 	}
-
+	
+	@Override
+	public void setY(double y)
+	{
+		hitbox.setY(y);
+		updateHitbox();
+	}
+	
 	public boolean bounceBall(Ball ball)
 	{
 		boolean hit = false;
-		if(ball.intersects(top.getLayoutBounds()) || ball.intersects(bottom.getLayoutBounds()))
+		if(ball.intersects(top.getLayoutBounds()))
 		{
 			hit = true;
-			ball.setInvertY();
+			ball.setYDirection(Ball.YDirection.UP);
 		}
-		if(ball.intersects(left.getLayoutBounds()) || ball.intersects(right.getLayoutBounds()))
+		else if(ball.intersects(bottom.getLayoutBounds()))
 		{
 			hit = true;
-			ball.setInvertX();
+			ball.setYDirection(Ball.YDirection.DOWN);
+		}
+		if(ball.intersects(left.getLayoutBounds()))
+		{
+			hit = true;
+			ball.setXDirection(Ball.XDirection.LEFT);
+		}
+		else if(ball.intersects(right.getLayoutBounds()))
+		{
+			hit = true;
+			ball.setXDirection(Ball.XDirection.RIGHT);
 		}
 		if(hit)
 			value--;
 		return hit;
 	}
-	
-	public int getValue()
+
+	public void updateHitbox()
 	{
-		return value;
+		double hitPadding = 5;
+		left = new Rectangle(hitbox.getX(), hitbox.getY() + hitPadding, 1, hitbox.getHeight() - 2 * hitPadding);
+		right = new Rectangle(hitbox.getX() + hitbox.getWidth(), hitbox.getY() + hitPadding, 1, hitbox.getHeight() - 2 * hitPadding);
+		top = new Rectangle(hitbox.getX() + hitPadding, hitbox.getY(), hitbox.getWidth() - 2 * hitPadding, 1);
+		bottom = new Rectangle(hitbox.getX() + hitPadding, hitbox.getY() + hitbox.getHeight(), hitbox.getWidth() - 2 * hitPadding, 1);
 	}
 }

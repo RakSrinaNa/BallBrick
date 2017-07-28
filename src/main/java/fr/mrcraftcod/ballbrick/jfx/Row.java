@@ -15,12 +15,12 @@ import java.util.concurrent.ThreadLocalRandom;
  */
 public class Row implements Sprite
 {
-	private final ArrayList<Box> boxes = new ArrayList<>();
-	private NewBall newBall;
+	private final ArrayList<Obstacle> obstacles = new ArrayList<>();
 	private final double padding;
 	private final double cellWidth;
 	private final double cellHeight;
 	private final GameController parent;
+	private NewBall newBall;
 	private int row;
 	
 	public Row(GameController parent, int row, int cols, double padding, double cellWidth, double cellHeight)
@@ -46,7 +46,7 @@ public class Row implements Sprite
 			Collections.shuffle(indices);
 			int index = indices.poll();
 			double x = (index + 1) * padding + index * cellWidth;
-			boxes.add(new Box(1 + ThreadLocalRandom.current().nextInt(2 * parent.getBallCount()), x, y, cellWidth, cellHeight));
+			obstacles.add(new Box(1 + ThreadLocalRandom.current().nextInt(4 * parent.getBallCount()), x, y, cellWidth, cellHeight));
 		}
 		Collections.shuffle(indices);
 		int index = indices.poll();
@@ -59,7 +59,7 @@ public class Row implements Sprite
 	@Override
 	public void draw(GraphicsContext gc)
 	{
-		boxes.forEach(box -> box.draw(gc));
+		obstacles.forEach(box -> box.draw(gc));
 		if(!newBall.isTaken())
 			newBall.draw(gc);
 	}
@@ -68,18 +68,18 @@ public class Row implements Sprite
 	{
 		if(!newBall.isTaken() && ball.intersects(newBall.getLayoutBounds()))
 		{
-			parent.addBall();
+			parent.addBall(newBall.getBall());
 			newBall.setTaken();
 		}
-		Iterator<Box> boxIterator = boxes.iterator();
-		while(boxIterator.hasNext())
+		Iterator<Obstacle> obstacleIterator = obstacles.iterator();
+		while(obstacleIterator.hasNext())
 		{
-			Box box = boxIterator.next();
-			if(box.bounceBall(ball))
+			Obstacle obstacle = obstacleIterator.next();
+			if(obstacle.bounceBall(ball))
 			{
 				parent.addScore(1);
-				if(box.getValue() <= 0)
-					boxIterator.remove();
+				if(obstacle.getValue() <= 0)
+					obstacleIterator.remove();
 			}
 		}
 	}
@@ -88,21 +88,18 @@ public class Row implements Sprite
 	{
 		row++;
 		double y = (row + 1) * padding + row * cellHeight;
-		boxes.forEach(box -> {
-			box.setY(y);
-			box.updateHitbox();
-		});
+		obstacles.forEach(box -> box.setY(y));
 		double y2 = (row + 2) * padding + (row + 1) * cellHeight;
 		newBall.setCenterY((y + y2) / 2);
+	}
+	
+	public int getBoxesCount()
+	{
+		return obstacles.size();
 	}
 	
 	public int getRow()
 	{
 		return row;
-	}
-	
-	public int getBoxesCount()
-	{
-		return boxes.size();
 	}
 }

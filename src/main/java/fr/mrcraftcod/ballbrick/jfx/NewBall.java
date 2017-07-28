@@ -34,6 +34,14 @@ public class NewBall extends Circle implements Sprite
 		gc.fillOval(getCenterX() - 0.75 * getRadius(), getCenterY() - 0.75 * getRadius(), 0.75 * getRadius() * 2, 0.75 * getRadius() * 2);
 	}
 	
+	public Ball getBall()
+	{
+		Ball ball =new Ball(getCenterX(), getCenterY());
+		ball.setVelocityX(0);
+		ball.setVelocityY(5);
+		return ball;
+	}
+	
 	public boolean isTaken()
 	{
 		return taken;

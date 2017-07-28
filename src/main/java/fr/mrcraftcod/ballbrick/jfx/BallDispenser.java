@@ -23,6 +23,7 @@ public class BallDispenser implements Sprite
 	private Ball lastBall = null;
 	private Queue<Ball> toLaunch = new LinkedList<>();
 	private Queue<Ball> toAdd = new LinkedList<>();
+	private Queue<Ball> toAddNow = new LinkedList<>();
 	
 	public BallDispenser(Ball initBall)
 	{
@@ -34,12 +35,14 @@ public class BallDispenser implements Sprite
 	public void draw(GraphicsContext gc)
 	{
 		balls.forEach(ball -> ball.draw(gc));
-		if(toLaunch.peek() != null)
+		Ball textBall = toLaunch.peek();
+		if(textBall == null)
+			textBall = first;
+		if(textBall != null)
 		{
-			Ball next = toLaunch.peek();
 			gc.setFill(Color.BLACK);
 			gc.setTextAlign(TextAlignment.CENTER);
-			gc.fillText("x" + toLaunch.size(), next.getCenterX(), next.getCenterY() - 1.25 * next.getRadius(), MainApplication.WIDTH);
+			gc.fillText("x" + balls.stream().mapToInt(ball -> ball.isStopped() ? 1 : 0).sum(), textBall.getCenterX(), textBall.getCenterY() - 1.25 * textBall.getRadius(), MainApplication.WIDTH);
 		}
 	}
 	
@@ -53,15 +56,27 @@ public class BallDispenser implements Sprite
 		if(status)
 		{
 			startNextBall();
+			{
+				Ball ball;
+				if((ball = toAddNow.poll()) != null)
+				{
+					balls.add(ball);
+					ball.start();
+				}
+			}
 			balls.forEach(ball -> {
 				if(!ball.isStopped())
 				{
 					ball.setCenterX(ball.getCenterX() + ball.getVelocityX());
 					ball.setCenterY(ball.getCenterY() + ball.getVelocityY());
-					if(ball.getCenterX() + ball.getRadius() >= MainApplication.WIDTH || ball.getCenterX() - ball.getRadius() <= 0)
-						ball.setInvertX();
-					if(ball.getCenterY() + ball.getRadius() >= MainApplication.HEIGHT || ball.getCenterY() - ball.getRadius() <= 0)
-						ball.setInvertY();
+					if(ball.getCenterX() + ball.getRadius() >= MainApplication.WIDTH)
+						ball.setXDirection(Ball.XDirection.LEFT);
+					else if(ball.getCenterX() - ball.getRadius() <= 0)
+						ball.setXDirection(Ball.XDirection.RIGHT);
+					if(ball.getCenterY() + ball.getRadius() >= MainApplication.HEIGHT)
+						ball.setYDirection(Ball.YDirection.UP);
+					else if(ball.getCenterY() - ball.getRadius() <= 0)
+						ball.setYDirection(Ball.YDirection.DOWN);
 					rows.forEach(row -> {
 						row.update(ball);
 						ball.update();
@@ -134,6 +149,11 @@ public class BallDispenser implements Sprite
 	private double distance(Ball b1, Ball b2)
 	{
 		return Math.sqrt(Math.pow(b1.getCenterX() - b2.getCenterX(), 2) + Math.pow(b1.getCenterY() - b2.getCenterY(), 2));
+	}
+	
+	public void addBall(Ball ball)
+	{
+		toAddNow.add(ball);
 	}
 	
 	public int getCount()

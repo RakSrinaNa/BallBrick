@@ -3,6 +3,8 @@ package fr.mrcraftcod.ballbrick.jfx;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Circle;
+import java.util.function.Function;
+
 /**
  * Created by Thomas Couchoud (MrCraftCod - zerderr@gmail.com) on 31/05/2017.
  *
@@ -11,11 +13,49 @@ import javafx.scene.shape.Circle;
  */
 public class Ball extends Circle implements Sprite
 {
+	public enum YDirection
+	{
+		UP(v -> -Math.abs(v)),
+		DOWN(Math::abs),
+		NONE(v -> v);
+		
+		private final Function<Double, Double> process;
+		
+		YDirection(Function<Double, Double> process)
+		{
+			this.process = process;
+		}
+		
+		public double process(double velocity)
+		{
+			return process.apply(velocity);
+		}
+	}
+	
+	public enum XDirection
+	{
+		LEFT(v -> -Math.abs(v)),
+		RIGHT(Math::abs),
+		NONE(v -> v);
+		
+		private final Function<Double, Double> process;
+		
+		XDirection(Function<Double, Double> process)
+		{
+			this.process = process;
+		}
+		
+		public double process(double velocity)
+		{
+			return process.apply(velocity);
+		}
+	}
+	
 	public static final int RADIUS = 10;
 	private double vx;
 	private double vy;
-	private boolean invertY;
-	private boolean invertX;
+	private YDirection yDirection = YDirection.NONE;
+	private XDirection xDirection = XDirection.NONE;
 	private boolean stop;
 	
 	public Ball(double x, double y)
@@ -44,7 +84,8 @@ public class Ball extends Circle implements Sprite
 		if(MainApplication.DEBUG)
 		{
 			gc.setFill(Color.GREEN);
-			gc.fillOval(getCenterX() - 5, getCenterY() - 5, 10, 10);
+			gc.fillOval(getCenterX() - getRadius() / 3, getCenterY() - getRadius() / 3, getRadius() / 1.5, getRadius() / 1.5);
+			gc.setFill(Color.RED);
 		}
 	}
 	
@@ -85,32 +126,20 @@ public class Ball extends Circle implements Sprite
 
 	public void update()
 	{
-		if(isInvertX())
-			setVelocityX(-getVelocityX());
-		if(isInvertY())
-			setVelocityY(-getVelocityY());
-		invertX = false;
-		invertY = false;
+		setVelocityX(xDirection.process(getVelocityX()));
+		setVelocityY(yDirection.process(getVelocityY()));
+		xDirection = XDirection.NONE;
+		yDirection = YDirection.NONE;
 	}
 
-	public void setInvertY()
+	public void setYDirection(YDirection direction)
 	{
-		this.invertY = true;
+		this.yDirection = direction;
 	}
 
-	public void setInvertX()
+	public void setXDirection(XDirection direction)
 	{
-		this.invertX = true;
-	}
-
-	public boolean isInvertX()
-	{
-		return invertX;
-	}
-
-	public boolean isInvertY()
-	{
-		return invertY;
+		this.xDirection = direction;
 	}
 
 	@Override

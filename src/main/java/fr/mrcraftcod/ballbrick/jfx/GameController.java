@@ -53,7 +53,7 @@ public class GameController implements EventHandler<ActionEvent>, Sprite
 	{
 		gc.setFill(Color.BLACK);
 		gc.setTextAlign(TextAlignment.CENTER);
-		gc.fillText("Score: " + hitCount, MainApplication.WIDTH / 2, 20, MainApplication.WIDTH);
+		gc.fillText("Score: " + hitCount, MainApplication.WIDTH / 2, 15, MainApplication.WIDTH);
 		rows.forEach(row -> row.draw(gc));
 		balls.draw(gc);
 	}
@@ -99,6 +99,11 @@ public class GameController implements EventHandler<ActionEvent>, Sprite
 	public void addBall()
 	{
 		balls.addBall();
+	}
+	
+	public void addBall(Ball ball)
+	{
+		balls.addBall(ball);
 	}
 	
 	public int getBallCount()
