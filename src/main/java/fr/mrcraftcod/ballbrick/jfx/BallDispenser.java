@@ -24,6 +24,7 @@ public class BallDispenser implements Sprite
 	private Queue<Ball> toLaunch = new LinkedList<>();
 	private Queue<Ball> toAdd = new LinkedList<>();
 	private Queue<Ball> toAddNow = new LinkedList<>();
+	private Queue<Ball> phantoms = new LinkedList<>();
 	
 	public BallDispenser(Ball initBall)
 	{
@@ -82,7 +83,9 @@ public class BallDispenser implements Sprite
 						ball.update();
 						if(ball.getCenterY() >= MainApplication.HEIGHT - 1.5 * ball.getRadius())
 						{
-							if(first != null)
+							if(ball.isPhantom())
+								phantoms.add(ball);
+							else if(first != null)
 								ball.setCenterX(first.getCenterX());
 							else
 								first = ball;
@@ -101,6 +104,12 @@ public class BallDispenser implements Sprite
 					b.setCenterX(first.getCenterX());
 					b.setCenterY(first.getCenterY());
 					balls.add(b);
+				}
+				while((b = phantoms.poll()) != null)
+				{
+					b.setCenterX(first.getCenterX());
+					b.setCenterY(first.getCenterY());
+					b.setPhantom(false);
 				}
 				first = null;
 				lastBall = null;

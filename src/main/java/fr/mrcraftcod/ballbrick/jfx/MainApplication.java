@@ -25,7 +25,7 @@ public class MainApplication extends ApplicationBase
 {
 	public static final double WIDTH = 500;
 	public static final double HEIGHT = 800;
-	public static final boolean DEBUG = true;
+	public static final boolean DEBUG = false;
 	public static final Color BACKGROUND = Color.GRAY;
 	public static Timeline drawTimeline;
 	private static Canvas canvas;

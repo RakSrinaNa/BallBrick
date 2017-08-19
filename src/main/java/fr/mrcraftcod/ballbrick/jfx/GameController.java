@@ -80,6 +80,7 @@ public class GameController implements EventHandler<ActionEvent>, Sprite
 	
 	private void gameOver()
 	{
+		System.out.println(hitCount);
 		hitCount = 0;
 		rows.clear();
 		balls = new BallDispenser(new Ball(MainApplication.WIDTH / 2, MainApplication.HEIGHT - 1.5001 * Ball.RADIUS));

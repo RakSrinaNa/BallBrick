@@ -66,6 +66,8 @@ public class Row implements Sprite
 	
 	public void update(Ball ball)
 	{
+		if(ball.isPhantom())
+			return;
 		if(!newBall.isTaken() && ball.intersects(newBall.getLayoutBounds()))
 		{
 			parent.addBall(newBall.getBall());

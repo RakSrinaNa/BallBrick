@@ -57,6 +57,7 @@ public class Ball extends Circle implements Sprite
 	private YDirection yDirection = YDirection.NONE;
 	private XDirection xDirection = XDirection.NONE;
 	private boolean stop;
+	private boolean phantom;
 	
 	public Ball(double x, double y)
 	{
@@ -79,7 +80,7 @@ public class Ball extends Circle implements Sprite
 			gc.setFill(Color.PINK);
 			gc.fillRect(getCenterX() - getRadius(), getCenterY() - getRadius(), 2 * getRadius(), 2 * getRadius());
 		}
-		gc.setFill(Color.ORANGE);
+		gc.setFill(isPhantom() ? Color.GREEN : Color.ORANGE);
 		gc.fillOval(getCenterX() - getRadius(), getCenterY() - getRadius(),  2 * getRadius(), 2 * getRadius());
 		if(MainApplication.DEBUG)
 		{
@@ -109,9 +110,19 @@ public class Ball extends Circle implements Sprite
 		return vy;
 	}
 	
+	public boolean isPhantom()
+	{
+		return phantom;
+	}
+	
 	public boolean isStopped()
 	{
 		return stop;
+	}
+	
+	public void setPhantom(boolean phantom)
+	{
+		this.phantom = phantom;
 	}
 	
 	public void setVelocityY(double velocityY)

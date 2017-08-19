@@ -36,9 +36,10 @@ public class NewBall extends Circle implements Sprite
 	
 	public Ball getBall()
 	{
-		Ball ball =new Ball(getCenterX(), getCenterY());
+		Ball ball = new Ball(getCenterX(), getCenterY());
 		ball.setVelocityX(0);
 		ball.setVelocityY(5);
+		ball.setPhantom(true);
 		return ball;
 	}
 	
