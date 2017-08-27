@@ -1,86 +1,108 @@
 package fr.mrcraftcod.ballbrick.jfx;
 
 import javafx.collections.FXCollections;
-import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
-import java.util.ArrayList;
+import javafx.scene.canvas.GraphicsContext;
+import javafx.scene.input.MouseEvent;
+import javafx.scene.paint.Color;
+import javafx.scene.text.TextAlignment;
 import java.util.Iterator;
-import java.util.List;
-import java.util.Random;
+
 /**
  * Created by Thomas Couchoud (MrCraftCod - zerderr@gmail.com) on 31/05/2017.
  *
  * @author Thomas Couchoud
  * @since 2017-05-31
  */
-public class GameController implements EventHandler<ActionEvent>
+public class GameController implements EventHandler<ActionEvent>, Sprite
 {
-	private final ArrayList<Sprite> sprites = new ArrayList<>();
-	private final ObservableList<Box> boxes = FXCollections.observableArrayList();
-	private final Ball ball;
-	private static final int rows = 5;
-	private static final int cols = 6;
-	private static final int padding = 2;
-	private static final int bottomSpace = 250;
-
-
+	private BallDispenser balls;
+	private final ObservableList<Row> rows = FXCollections.observableArrayList();
+	private static final int ROWS = 7;
+	private static final int COLS = 6;
+	private static final int PADDING = 2;
+	private static final int BOTTOM_SPACE = 100;
+	private int hitCount = 0;
+	private final double cellWidth;
+	private final double cellHeight;
+	
 	public GameController()
 	{
-		boxes.addListener((ListChangeListener<Box>) c -> {
-			while(c.next())
-			{
-				sprites.addAll(c.getAddedSubList());
-				sprites.removeAll(c.getRemoved());
-			}
-		});
-
-		double aw = MainApplication.WIDTH - (cols + 1) * padding;
-		double ah = (MainApplication.HEIGHT - bottomSpace) - (rows + 1) * padding;
-		double w = MainApplication.WIDTH / cols;
-		double h = (MainApplication.HEIGHT - bottomSpace) / rows;
-		for(int i = 0; i < rows * cols; i++)
-		{
-			int r = i / cols;
-			int c = i % cols;
-			Box box = new Box(c * w + (c + 1) * padding, MainApplication.HEIGHT - r * h - (r + 1) * padding, aw / cols, ah / rows, new Random().nextInt(10));
-			boxes.add(box);
-		}
-
-		sprites.add(ball = new Ball(MainApplication.WIDTH / 2, 2 * Ball.RADIUS));
-		ball.setVelocityX(3);
-		ball.setVelocityY(-2);
+		cellWidth = MainApplication.WIDTH / COLS;
+		cellHeight = (MainApplication.HEIGHT - BOTTOM_SPACE) / ROWS;
+		
+		balls = new BallDispenser(new Ball(MainApplication.WIDTH / 2, MainApplication.HEIGHT - 1.5001 * Ball.RADIUS));
+		
+		moveRows();
 	}
-
+	
 	@Override
 	public void handle(ActionEvent event)
 	{
-		ball.setCenterX(ball.getCenterX() + ball.getVelocityX());
-		ball.setCenterY(ball.getCenterY() + ball.getVelocityY());
-		if(ball.getCenterX() + ball.getRadius() >= MainApplication.WIDTH || ball.getCenterX() - ball.getRadius() <= 0)
-			ball.setInvertX();
-		if(ball.getCenterY() + ball.getRadius() >= MainApplication.HEIGHT || ball.getCenterY() - ball.getRadius() <= 0)
-			ball.setInvertY();
-		Iterator<Box> boxIterator = boxes.iterator();
-		while(boxIterator.hasNext())
-			if(boxIterator.next().bounceBall(ball))
-				boxIterator.remove();
-		ball.update();
-		if(ball.getCenterY() >= MainApplication.HEIGHT - 1.5 * ball.getRadius())
+		if(!balls.update(rows))
 		{
-			ball.setCenterY(MainApplication.HEIGHT - 2.5 * ball.getRadius());
+			moveRows();
 			MainApplication.gameTimeline.pause();
 		}
 	}
-
-	public List<Sprite> getSprites()
+	
+	@Override
+	public void draw(GraphicsContext gc)
 	{
-		return sprites;
+		gc.setFill(Color.BLACK);
+		gc.setTextAlign(TextAlignment.CENTER);
+		gc.fillText("Score: " + hitCount, MainApplication.WIDTH / 2, 20, MainApplication.WIDTH);
+		rows.forEach(row -> row.draw(gc));
+		balls.draw(gc);
 	}
-
-	public Ball getBall()
+	
+	private void moveRows()
 	{
-		return ball;
+		boolean gameOver = false;
+		rows.forEach(Row::moveDown);
+		Iterator<Row> rowIterator = rows.iterator();
+		while(rowIterator.hasNext())
+		{
+			Row row = rowIterator.next();
+			if(row.getRow() >= ROWS)
+			{
+				if(row.getBoxesCount() > 0)
+					gameOver = true;
+				rowIterator.remove();
+			}
+		}
+		if(gameOver)
+			gameOver();
+		rows.add(new Row(this, 1, COLS, PADDING, cellWidth, cellHeight));
+	}
+	
+	private void gameOver()
+	{
+		hitCount = 0;
+		rows.clear();
+		balls = new BallDispenser(new Ball(MainApplication.WIDTH / 2, MainApplication.HEIGHT - 1.5001 * Ball.RADIUS));
+	}
+	
+	public void onNewRound(MouseEvent evt)
+	{
+		if(balls.start(evt))
+			MainApplication.gameTimeline.play();
+	}
+	
+	public void addScore(int size)
+	{
+		hitCount += size;
+	}
+	
+	public void addBall()
+	{
+		balls.addBall();
+	}
+	
+	public int getBallCount()
+	{
+		return balls.getCount();
 	}
 }

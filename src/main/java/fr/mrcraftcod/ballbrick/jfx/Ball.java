@@ -11,15 +11,16 @@ import javafx.scene.shape.Circle;
  */
 public class Ball extends Circle implements Sprite
 {
-	public static final int RADIUS = 25;
+	public static final int RADIUS = 10;
 	private double vx;
 	private double vy;
 	private boolean invertY;
 	private boolean invertX;
-
+	private boolean stop;
+	
 	public Ball(double x, double y)
 	{
-		this(x, MainApplication.HEIGHT - y, RADIUS);
+		this(x, y, RADIUS);
 	}
 
 	public Ball(double x, double y, double radius)
@@ -27,6 +28,7 @@ public class Ball extends Circle implements Sprite
 		super(x, y, radius);
 		this.vx = 0;
 		this.vy = 0;
+		this.stop = true;
 	}
 
 	@Override
@@ -45,7 +47,17 @@ public class Ball extends Circle implements Sprite
 			gc.fillOval(getCenterX() - 5, getCenterY() - 5, 10, 10);
 		}
 	}
-
+	
+	public void stop()
+	{
+		this.stop = true;
+	}
+	
+	public void start()
+	{
+		stop = false;
+	}
+	
 	public double getVelocityX()
 	{
 		return vx;
@@ -55,7 +67,12 @@ public class Ball extends Circle implements Sprite
 	{
 		return vy;
 	}
-
+	
+	public boolean isStopped()
+	{
+		return stop;
+	}
+	
 	public void setVelocityY(double velocityY)
 	{
 		this.vy = velocityY;
